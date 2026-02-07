@@ -5,6 +5,7 @@ from packaging.version import parse as _parse
 from sphinx import addnodes
 
 import ablog
+import os
 
 ablog_builder = "dirhtml"
 ablog_website = "_website"
@@ -20,6 +21,12 @@ extensions = [
     "alabaster",
     "nbsphinx",
     "myst_parser",
+]
+
+
+# Add any paths that contain templates here, relative to this directory.
+templates_path = [
+    '_templates',
 ]
 
 version = str(_parse(ablog.__version__))
@@ -69,27 +76,36 @@ blog_feed_templates = {
 disqus_shortname = "https-ablog-readthedocs-io"
 disqus_pages = True
 fontawesome_link_cdn = "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css"
-html_theme = "alabaster"
-html_sidebars = {
-    "**": [
+html_theme = os.environ.get("THEME", "alabaster")
+theme_content_block = os.environ.get("CONTENT_BLOCK", "body")
+
+sidebar_items = [
+    "ablog/postcard.html",
+    "ablog/recentposts.html",
+    "ablog/tagcloud.html",
+    "ablog/categories.html",
+    "ablog/archives.html",
+    "ablog/authors.html",
+    "ablog/languages.html",
+    "ablog/locations.html",
+]
+
+if html_theme == "alabaster":
+    sidebar_items = [
         "about.html",  # Comes from alabaster
         "searchfield.html",  # Comes from alabaster
-        "ablog/postcard.html",
-        "ablog/recentposts.html",
-        "ablog/tagcloud.html",
-        "ablog/categories.html",
-        "ablog/archives.html",
-        "ablog/authors.html",
-        "ablog/languages.html",
-        "ablog/locations.html",
-    ]
+    ] + sidebar_items
+
+html_sidebars = {
+    "**": sidebar_items
 }
+
 html_theme_options = {
-    "travis_button": False,
-    "github_user": "sunpy",
-    "github_repo": "ablog",
-    "description": "ABlog for blogging with Sphinx",
-    "logo": "ablog.png",
+    # "travis_button": False,
+    # "github_user": "sunpy",
+    # "github_repo": "ablog",
+    # "description": "ABlog for blogging with Sphinx",
+    # "logo": {} # "ablog.png",
 }
 intersphinx_mapping = {
     "python": ("https://docs.python.org/", None),

@@ -1,0 +1,42 @@
+{%- extends ablog.theme_page_template %}{% set fa = ablog.fontawesome %} {%- block
+extrahead %} {{ super() }}
+  <meta name="robots" content="noindex">
+{% if feed_path %}
+<link
+  rel="alternate"
+  type="application/atom+xml"
+  href="{{ pathto(feed_path, 1) }}/atom.xml"
+  title="{{ feed_title }}"
+/>
+{% endif %} {% if ablog.fontawesome_link_cdn %}
+<link href="{{ ablog.fontawesome_link_cdn }}" rel="stylesheet" />
+{% elif ablog.fontawesome_css_file %}
+<link
+  rel="stylesheet"
+  href="{{ pathto('_static/' + ablog.fontawesome_css_file, 1) }}"
+  type="text/css"
+/>
+{% endif %} {% endblock extrahead %}
+{% block header %}
+  <div>
+    This page is published for development purposes and isn’t official documentation. (<a href="https://ablog.readthedocs.io/en/stable/">official docs</a>)
+  </div>
+  {{ super() }}
+{% endblock %}
+{% block content %}
+  {% if ablog.theme_content_block == "content" %}
+    {% block page_content %}
+      {{ body }}
+      {% include "ablog/page_content_post.html" %}
+    {% endblock %}
+  {% else %}
+    {{ super() }}
+  {% endif %}
+{% endblock %}
+{% block body %}
+  {% if ablog.theme_content_block == "body" %}
+    {{ self.page_content() }}
+  {% else %}
+    {{ super() }}
+  {% endif %}
+{% endblock %}
