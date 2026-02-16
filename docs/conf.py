@@ -5,6 +5,7 @@ from packaging.version import parse as _parse
 from sphinx import addnodes
 
 import ablog
+import os
 
 ablog_builder = "dirhtml"
 ablog_website = "_website"
@@ -69,28 +70,51 @@ blog_feed_templates = {
 disqus_shortname = "https-ablog-readthedocs-io"
 disqus_pages = True
 fontawesome_link_cdn = "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css"
-html_theme = "alabaster"
-html_sidebars = {
-    "**": [
+html_theme = os.environ.get("THEME", "alabaster")
+
+sidebar_items = [
+    "ablog/postcard.html",
+    "ablog/recentposts.html",
+    "ablog/tagcloud.html",
+    "ablog/categories.html",
+    "ablog/archives.html",
+    "ablog/authors.html",
+    "ablog/languages.html",
+    "ablog/locations.html",
+]
+
+if html_theme == "alabaster":
+    sidebar_items = [
         "about.html",  # Comes from alabaster
         "searchfield.html",  # Comes from alabaster
-        "ablog/postcard.html",
-        "ablog/recentposts.html",
-        "ablog/tagcloud.html",
-        "ablog/categories.html",
-        "ablog/archives.html",
-        "ablog/authors.html",
-        "ablog/languages.html",
-        "ablog/locations.html",
-    ]
+    ] + sidebar_items
+
+html_sidebars = {
+    "**": sidebar_items
 }
+
 html_theme_options = {
-    "travis_button": False,
-    "github_user": "sunpy",
-    "github_repo": "ablog",
-    "description": "ABlog for blogging with Sphinx",
-    "logo": "ablog.png",
+    # "travis_button": False,
+    # "github_user": "sunpy",
+    # "github_repo": "ablog",
+    # "description": "ABlog for blogging with Sphinx",
+    # "logo": {} # "ablog.png",
+    "announcement": """This page is published for development purposes and isn’t official documentation. (<a href="https://ablog.readthedocs.io/en/stable/">official docs</a>)"""
 }
+
+if html_theme == "pydata_sphinx_theme":
+    html_theme_options["article_footer_items"] = [
+        "ablog/postnavy.html",
+        "ablog/disqus.html",
+    ]
+
+if html_theme == "shibuya":
+    templates_path = ['_templates/shibuya']
+
+if html_theme == "furo":
+    templates_path = ['_templates/furo']
+
+
 intersphinx_mapping = {
     "python": ("https://docs.python.org/", None),
     "sphinx": ("https://www.sphinx-doc.org/en/master/", None),
@@ -136,6 +160,13 @@ def parse_event(env, sig, signode):
     return name
 
 
+def noindex(app, pagename, templatename, ctx, doctree):
+    if "metatags" not in ctx:
+        ctx["metatags"] = ""
+
+    ctx["metatags"] += '<meta name="robots" content="noindex">'
+
+
 def setup(app):
     from sphinx.ext.autodoc import cut_lines
     from sphinx.util.docfields import GroupedField
@@ -149,3 +180,5 @@ def setup(app):
     )
     fdesc = GroupedField("parameter", label="Parameters", names=["param"], can_collapse=True)
     app.add_object_type("event", "event", "pair: %s; event", parse_event, doc_field_types=[fdesc])
+
+    app.connect("html-page-context", noindex)

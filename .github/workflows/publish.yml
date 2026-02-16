@@ -1,0 +1,49 @@
+name: publish
+
+on:
+  push:
+    branches: [ "build-theme2" ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+      - name: Install deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install pandoc graphviz
+      - name: Install ablog
+        shell: bash -el {0}
+        run: |
+          pip install ".[dev]"
+      - run: python -m pip install pydata-sphinx-theme furo shibuya
+      - run: mkdir _website
+      - run: THEME="pydata_sphinx_theme" CONTENT_BLOCK="body" ablog build -s . -w ../_website/pydata-sphinx-theme
+        working-directory: ./docs
+      - run: THEME="furo" CONTENT_BLOCK="content" ablog build -s . -w ../_website/furo
+        working-directory: ./docs
+      - run: THEME="shibuya" CONTENT_BLOCK="content" ablog build -s . -w ../_website/shibuya
+        working-directory: ./docs
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _website
+
+  deploy:
+    needs: build
+    permissions:
+      id-token: write
+      pages: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/deploy-pages@v4
+        id: deployment
